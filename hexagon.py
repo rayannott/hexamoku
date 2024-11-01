@@ -120,7 +120,7 @@ class HexagonalGrid:
             hex_._neighbours = hex_._get_neighbors_from(self.hexagons)
             self.grid[coord] = set(hex_._neighbours.keys())
 
-        self._moves = []
+        self._moves: list[Coordinate] = []
 
     def at(self, coord: Coordinate) -> Hexagon:
         return self.hexagons[coord]
@@ -160,24 +160,38 @@ class HexagonalGrid:
                     stack.append(neighbour)
         return visited
 
+    def _connected_components(self) -> list[list[Hexagon]]:
+        visited = set()
+        components = []
+        for hexagon in self.hexagons.values():
+            if hexagon.coordinate not in visited:
+                component = self.connected_component(hexagon)
+                visited |= {hex_.coordinate for hex_ in component}
+                components.append(component)
+        return components
+
     def connected_component(self, hexagon: Hexagon) -> list[Hexagon]:
         return [
             self.hexagons[coord]
             for coord in self._connected_component_coordinates(hexagon)
         ]
 
-    def get_winning_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
+    def _get_best_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
         conn_component = self.connected_component(hexagon)
         coord = hexagon.coordinate
-        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (set(), set(), set())
+        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (
+            set(),
+            set(),
+            set(),
+        )
         for i, coord in enumerate(coord):
             for hex_ in conn_component:
                 if hex_.coordinate[i] == coord:
                     axes[i].add(hex_.coordinate)
-        for axis in axes:
-            if len(axis) >= 5:
-                return axis
-        return set()
+        return max(axes, key=len)
+
+    def get_winning_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
+        return best_seq if len(best_seq := self._get_best_sequence(hexagon)) >= 5 else set()
 
     def register_move(self, coordinate: Coordinate) -> None:
         self._moves.append(coordinate)

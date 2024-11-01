@@ -4,6 +4,7 @@ from pygame import Vector2
 from game import Game
 from hexagon import HexagonalGridGUIWrapper, Hexagon
 from front_utils import BLACK, GREEN, MAGENTA
+from minimax import get_best_move
 
 
 class GameScreen:
@@ -55,6 +56,9 @@ class GameScreen:
                         self.gui_grid.toggle_display_move_labels()
                     elif event.key == pygame.K_r:
                         self.reset_game()
+                    elif event.key == pygame.K_q:
+                        best_move = get_best_move(self.game.grid, self.game.current_player, 3)
+                        print("Best move:", best_move)
                     elif event.key == pygame.K_d:
                         print("-- debug --")
                         print("Current player:", self.game.current_player)
@@ -62,7 +66,6 @@ class GameScreen:
                         print(
                             f"Is over: {self.game.is_over}; Verdict: {self.game.verdict}"
                         )
-                        print(self.game._victory_sequence)
                 elif event.type == pygame.MOUSEMOTION:
                     ...
             pygame.display.update()
