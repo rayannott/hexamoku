@@ -166,6 +166,19 @@ class HexagonalGrid:
             for coord in self._connected_component_coordinates(hexagon)
         ]
 
+    def get_winning_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
+        conn_component = self.connected_component(hexagon)
+        coord = hexagon.coordinate
+        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (set(), set(), set())
+        for i, coord in enumerate(coord):
+            for hex_ in conn_component:
+                if hex_.coordinate[i] == coord:
+                    axes[i].add(hex_.coordinate)
+        for axis in axes:
+            if len(axis) >= 5:
+                return axis
+        return set()
+
     def register_move(self, coordinate: Coordinate) -> None:
         self._moves.append(coordinate)
 

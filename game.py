@@ -17,24 +17,18 @@ class Game:
     def move(self, hex_: Hexagon) -> bool:
         if hex_.state != State.NONE:
             return False
+        if self.current_move == 0 and hex_.coordinate == (0, 0, 0):
+            print("First move cannot be in the center")
+            return False
         hex_.set_state(self.current_player)
         self.current_move += 1
         self.grid.register_move(hex_.coordinate)
         return True
 
     def check_win(self, last_clicked_hex: Hexagon) -> bool:
-        conn_component = self.grid.connected_component(last_clicked_hex)
-        coord = last_clicked_hex.coordinate
-        axes = ([], [], [])
-        for i, coord in enumerate(coord):
-            for hex_ in conn_component:
-                if hex_.coordinate[i] == coord:
-                    axes[i].append(hex_.coordinate)
-        for axis in axes:
-            if len(axis) >= 5:
-                self._victory_sequence = set(axis)
-                return True
-        return False
+        winning_seq = self.grid.get_winning_sequence(last_clicked_hex)
+        self._victory_sequence = winning_seq
+        return bool(winning_seq)
 
     def process_last_click(self, last_clicked_hex: Hexagon) -> None:
         won = self.check_win(last_clicked_hex)

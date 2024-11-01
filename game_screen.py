@@ -80,3 +80,5 @@ class GameScreen:
                 [(hex_, MAGENTA)] if not self.game.is_over else []
             )
             self.gui_grid._victory_sequence_copy = self.game._victory_sequence.copy()
+        else:
+            print("Invalid move")
