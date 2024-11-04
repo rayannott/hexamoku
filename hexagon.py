@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 import pygame
 from pygame import Vector2, Color
+import numpy as np
 
 from front_utils import WHITE, BLACK, BLUE, ORANGE, dim_color
 
@@ -73,7 +74,7 @@ class Hexagon:
     _neighbours: dict[Coordinate, "Hexagon"] = field(default_factory=dict)
 
     def __repr__(self) -> str:
-        return f"Hex({self.coordinate})"
+        return f"Hex({self.coordinate} {self.state.name})"
 
     def _get_neighbors_from(
         self, hexagons: dict[Coordinate, "Hexagon"]
@@ -169,7 +170,11 @@ class HexagonalGrid:
     def get_winning_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
         conn_component = self.connected_component(hexagon)
         coord = hexagon.coordinate
-        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (set(), set(), set())
+        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (
+            set(),
+            set(),
+            set(),
+        )
         for i, coord in enumerate(coord):
             for hex_ in conn_component:
                 if hex_.coordinate[i] == coord:
@@ -181,6 +186,24 @@ class HexagonalGrid:
 
     def register_move(self, coordinate: Coordinate) -> None:
         self._moves.append(coordinate)
+
+    def to_numpy(self) -> np.ndarray:
+        def ohe(state: State) -> np.ndarray:
+            return np.array(
+                [state == State.NONE, state == State.ONE, state == State.TWO]
+            )
+
+        res = []
+        for coord, hex_ in self.hexagons.items():
+            res.append(ohe(hex_.state))
+        return np.array(res, dtype=np.int8).T
+
+    def randomize_grid(self) -> None:
+        import random
+
+        for hex_ in self.hexagons.values():
+            if random.random() < 0.2:
+                hex_.state = random.choice([State.ONE, State.TWO])
 
 
 class HexagonalGridGUIWrapper:
