@@ -1,6 +1,7 @@
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from collections import Counter
 
 import pygame
 from pygame import Vector2, Color
@@ -169,19 +170,16 @@ class HexagonalGrid:
 
     def get_winning_sequence(self, hexagon: Hexagon) -> set[Coordinate]:
         conn_component = self.connected_component(hexagon)
-        coord = hexagon.coordinate
-        axes: tuple[set[Coordinate], set[Coordinate], set[Coordinate]] = (
-            set(),
-            set(),
-            set(),
-        )
-        for i, coord in enumerate(coord):
-            for hex_ in conn_component:
-                if hex_.coordinate[i] == coord:
-                    axes[i].add(hex_.coordinate)
-        for axis in axes:
-            if len(axis) >= 5:
-                return axis
+        for coord_id in range(3):
+            coords_counter = Counter(hex.coordinate[coord_id] for hex in conn_component)
+            most_common = coords_counter.most_common(1)[0]
+            if most_common[1] >= 5:
+                winning_sequence = {
+                    hex.coordinate
+                    for hex in conn_component
+                    if hex.coordinate[coord_id] == most_common[0]
+                }
+                return winning_sequence
         return set()
 
     def register_move(self, coordinate: Coordinate) -> None:
