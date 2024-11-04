@@ -120,7 +120,7 @@ class HexagonalGrid:
         for coord, hex_ in self.hexagons.items():
             hex_._neighbours = hex_._get_neighbors_from(self.hexagons)
             self.grid[coord] = set(hex_._neighbours.keys())
-
+        self.coordinates_lst = list(self.hexagons.keys())
         self._moves = []
 
     def at(self, coord: Coordinate) -> Hexagon:
