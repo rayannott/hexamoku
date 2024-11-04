@@ -13,7 +13,7 @@ class GameScreen:
         hex_radius: int,
     ):
         self.screen = screen
-        self.game = Game(6)
+        self.game = Game(num_rings=6)
         self.gui_grid = HexagonalGridGUIWrapper(
             self.game.grid,
             hex_radius,
@@ -48,7 +48,14 @@ class GameScreen:
                         print("Clicked outside of hexagons")
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        ...
+                        if self.game.bot is None:
+                            print("No bot assigned")
+                            continue
+                        if self.game.bot.bot_player_state == self.game.current_player:
+                            hex_ = self.game.bot.move()
+                            self.clicked_hex(hex_)
+                        else:
+                            print("It's not the bot's turn")
                     elif event.key == pygame.K_c:
                         self.gui_grid.toggle_display_coordinates()
                     elif event.key == pygame.K_m:

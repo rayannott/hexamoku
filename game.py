@@ -1,4 +1,5 @@
 from hexagon import HexagonalGrid, State, Hexagon, Coordinate
+from bots.bot import Bot
 
 
 class Game:
@@ -8,11 +9,16 @@ class Game:
         self.is_over = False
         self.verdict = State.NONE
 
+        self.bot = None
+
         self._victory_sequence: set[Coordinate] = set()
 
     @property
     def current_player(self) -> State:
         return State.ONE if self.current_move % 2 == 0 else State.TWO
+
+    def assign_bot(self, bot_type: type[Bot], **kwargs) -> None:
+        self.bot = bot_type(self.grid, **kwargs)
 
     def move(self, hex_: Hexagon) -> bool:
         if hex_.state != State.NONE:
