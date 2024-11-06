@@ -1,8 +1,12 @@
+import json
+from collections import deque
+
 import pygame
 from pygame import Vector2
+import pyperclip
 
 from game import Game
-from hexagon import HexagonalGridGUIWrapper, Hexagon, State, BORDER_WIDTH
+from hexagon import HexagonalGridGUIWrapper, Hexagon, State, BORDER_WIDTH, Coordinate
 from front_utils import BLACK, GREEN, MAGENTA, ORANGE, BLUE
 
 
@@ -22,9 +26,12 @@ class GameScreen:
         )
         self.running = True
 
+        self.move_queue: deque[Coordinate] = deque()
+
     def reset_game(self):
         self.game = Game(6)
         self.gui_grid.reset_with_grid(self.game.grid)
+        self.move_queue: deque[Coordinate] = deque()
 
     def run(self):
         pygame.display.set_caption("Hexagonal Grid Rings")
@@ -38,7 +45,9 @@ class GameScreen:
             if hex_hovering:
                 self.gui_grid.highlight_hexagon(
                     hex_hovering,
-                    (ORANGE if self.game.current_player == State.ONE else BLUE) if not self.game.is_over else GREEN,
+                    (ORANGE if self.game.current_player == State.ONE else BLUE)
+                    if not self.game.is_over
+                    else GREEN,
                     width=BORDER_WIDTH * 3 // 2,
                 )
 
@@ -68,6 +77,18 @@ class GameScreen:
                         self.reset_game()
                     elif event.key == pygame.K_s:
                         self.game.save_game()
+                    elif event.key == pygame.K_q:
+                        if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                            self.populate_queue_from_clipboard()
+                            continue
+                        if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                            while self.move_queue:
+                                self.pop_from_queue()
+                            continue
+                        if not self.move_queue:
+                            print("Queue is empty")
+                            continue
+                        self.pop_from_queue()
                     elif event.key == pygame.K_d:
                         print("-- debug --")
                         print("Current player:", self.game.current_player)
@@ -79,6 +100,35 @@ class GameScreen:
                 elif event.type == pygame.MOUSEMOTION:
                     ...
             pygame.display.update()
+
+    def _parse_data(self, data: str) -> list[Coordinate]:
+        try:
+            json_data = json.loads(data)
+        except json.JSONDecodeError:
+            print(f"Invalid JSON: {data}")
+            return []
+
+        if isinstance(json_data, dict):
+            moves_lst = json_data.get("moves", [])
+            return [Coordinate(move) for move in moves_lst]
+        if isinstance(json_data, list):
+            return [Coordinate(move) for move in json_data]
+        print(f"Unexpected JSON data: {json_data}")
+        return []
+
+    def populate_queue_from_clipboard(self):
+        data = pyperclip.paste()
+        moves = self._parse_data(data)
+        self.move_queue.extend(moves)
+        print(f"Populated queue with {len(moves)} moves.")
+    
+    def pop_from_queue(self):
+        coord = self.move_queue.popleft()
+        hex_ = self.game.grid.at(coord)
+        self.clicked_hex(hex_)
+        print(
+            f"Retrieved move from queue: {coord}. Remaining: {len(self.move_queue)} moves."
+        )
 
     def clicked_hex(self, hex_: Hexagon) -> None:
         if self.game.is_over:
