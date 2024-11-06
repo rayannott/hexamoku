@@ -62,6 +62,8 @@ class GameScreen:
                         self.gui_grid.toggle_display_move_labels()
                     elif event.key == pygame.K_r:
                         self.reset_game()
+                    elif event.key == pygame.K_s:
+                        self.game.save_game()
                     elif event.key == pygame.K_d:
                         print("-- debug --")
                         print("Current player:", self.game.current_player)

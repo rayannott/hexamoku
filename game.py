@@ -1,5 +1,13 @@
+import pathlib
+import json
+import datetime
+from pprint import pprint
+
 from hexagon import HexagonalGrid, State, Hexagon, Coordinate
 from bots.bot import Bot
+
+
+SAVES_FILE = pathlib.Path("games") / "games.jsonl"
 
 
 class Game:
@@ -48,3 +56,18 @@ class Game:
             self.is_over = True
             print("Draw!")
             return
+
+    def save_game(self):
+        verdict = (
+            (self.verdict.name.lower() if self.verdict != State.NONE else "draw")
+            if self.is_over
+            else None
+        )
+        with SAVES_FILE.open("a") as f:
+            game_data = {
+                "verdict": verdict,
+                "moves": [list(move) for move in self.grid._moves],
+                "date": datetime.datetime.now().isoformat(),
+            }
+            print(json.dumps(game_data), file=f)
+            pprint(game_data)
