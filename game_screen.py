@@ -2,8 +2,8 @@ import pygame
 from pygame import Vector2
 
 from game import Game
-from hexagon import HexagonalGridGUIWrapper, Hexagon
-from front_utils import BLACK, GREEN, MAGENTA
+from hexagon import HexagonalGridGUIWrapper, Hexagon, State, BORDER_WIDTH
+from front_utils import BLACK, GREEN, MAGENTA, ORANGE, BLUE
 
 
 class GameScreen:
@@ -36,7 +36,11 @@ class GameScreen:
             mouse_pos = Vector2(pygame.mouse.get_pos())
             hex_hovering = self.gui_grid.hexagon_hovering(mouse_pos)
             if hex_hovering:
-                self.gui_grid.highlight_hexagon(hex_hovering, GREEN)
+                self.gui_grid.highlight_hexagon(
+                    hex_hovering,
+                    (ORANGE if self.game.current_player == State.ONE else BLUE) if not self.game.is_over else GREEN,
+                    width=BORDER_WIDTH * 3 // 2,
+                )
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:

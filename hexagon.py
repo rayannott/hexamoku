@@ -268,7 +268,7 @@ class HexagonalGridGUIWrapper:
                 )
                 self.surface.blit(text, text_rect)
         for args in self._hexagons_to_highlight:
-            self.highlight_hexagon(*args)
+            self.highlight_hexagon(*args, width=BORDER_WIDTH * 3 // 2)
 
     def hexagon_hovering(self, pos: Vector2) -> Hexagon | None:
         _min_sq_dist = float("inf")
@@ -287,12 +287,12 @@ class HexagonalGridGUIWrapper:
     def toggle_display_move_labels(self) -> None:
         self._display_move_indices = not self._display_move_indices
 
-    def highlight_hexagon(self, hexagon: Hexagon, color: Color) -> None:
+    def highlight_hexagon(self, hexagon: Hexagon, color: Color, width: int | None = None) -> None:
         pygame.draw.polygon(
             self.surface,
             color,
             self.polygons[hexagon.coordinate],  # type: ignore
-            BORDER_WIDTH,
+            BORDER_WIDTH if width is None else width,
         )
 
     def reset_with_grid(self, grid: HexagonalGrid) -> None:
