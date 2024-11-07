@@ -2,7 +2,6 @@ import pygame
 
 from game_screen import GameScreen
 from hexagon import State
-from bots.randombot import RandomBot
 from bots.minimax import MinimaxBot
 
 

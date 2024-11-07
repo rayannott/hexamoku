@@ -31,10 +31,6 @@ class Game:
     def move(self, hex_: Hexagon) -> bool:
         if hex_.state != State.NONE:
             return False
-        # TODO: maybe the first move cannot be in the center AND the first ring?
-        if self.current_move == 0 and (hex_.coordinate == (0, 0, 0) or hex_.coordinate.get_ring_number() == 1):
-            print("First move cannot be in the center or the first ring")
-            return False
         hex_.set_state(self.current_player)
         self.current_move += 1
         self.grid.register_move(hex_.coordinate)
