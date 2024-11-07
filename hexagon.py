@@ -7,7 +7,10 @@ import pygame
 from pygame import Vector2, Color
 import numpy as np
 
-from front_utils import WHITE, BLACK, BLUE, ORANGE, dim_color
+from front_utils import WHITE, BLACK, BLUE, ORANGE, GREEN, RED, PINK, dim_color
+
+
+WBG = (WHITE, RED, GREEN)
 
 
 pygame.font.init()
@@ -256,15 +259,18 @@ class HexagonalGridGUIWrapper:
 
             # add text of the coordinate
             if self._display_coordinate_labels:
-                text = FONT.render(",".join(map(str, coord)), True, WHITE)
-                text_rect = text.get_rect(center=self.positions[coord])
-                self.surface.blit(text, text_rect)
+                for i, c in enumerate(coord):
+                    text = FONT.render(str(c), True, WBG[i])
+                    text_rect = text.get_rect(
+                        center=self.positions[coord]
+                        + HEXAGON_POINT_VECTORS[1 + 2 * i] * self.radius * 0.6
+                    )
+                    self.surface.blit(text, text_rect)
         if self._display_move_indices:
             for i, coord in enumerate(self.grid._moves, 1):
-                text = FONT.render(str(i), True, WHITE)
+                text = FONT.render(str(i), True, PINK)
                 text_rect = text.get_rect(
                     center=self.positions[coord]
-                    + HEXAGON_POINT_VECTORS[1] * self.radius * 0.75
                 )
                 self.surface.blit(text, text_rect)
         for args in self._hexagons_to_highlight:
@@ -287,7 +293,9 @@ class HexagonalGridGUIWrapper:
     def toggle_display_move_labels(self) -> None:
         self._display_move_indices = not self._display_move_indices
 
-    def highlight_hexagon(self, hexagon: Hexagon, color: Color, width: int | None = None) -> None:
+    def highlight_hexagon(
+        self, hexagon: Hexagon, color: Color, width: int | None = None
+    ) -> None:
         pygame.draw.polygon(
             self.surface,
             color,
