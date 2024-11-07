@@ -5,8 +5,12 @@ from collections import Counter
 
 import pygame
 from pygame import Vector2, Color
+import numpy as np
 
-from front_utils import WHITE, BLACK, BLUE, ORANGE, dim_color
+from front_utils import WHITE, BLACK, BLUE, ORANGE, GREEN, RED, PINK, dim_color
+
+
+WBG = (WHITE, RED, GREEN)
 
 
 pygame.font.init()
@@ -74,7 +78,7 @@ class Hexagon:
     _neighbours: dict[Coordinate, "Hexagon"] = field(default_factory=dict)
 
     def __repr__(self) -> str:
-        return f"Hex({self.coordinate})"
+        return f"Hex({self.coordinate} {self.state.name})"
 
     def _get_neighbors_from(
         self, hexagons: dict[Coordinate, "Hexagon"]
@@ -120,8 +124,8 @@ class HexagonalGrid:
         for coord, hex_ in self.hexagons.items():
             hex_._neighbours = hex_._get_neighbors_from(self.hexagons)
             self.grid[coord] = set(hex_._neighbours.keys())
-
-        self._moves = []
+        self.coordinates_lst = list(self.hexagons.keys())
+        self._moves: list[Coordinate] = []
 
     def at(self, coord: Coordinate) -> Hexagon:
         return self.hexagons[coord]
@@ -184,6 +188,24 @@ class HexagonalGrid:
     def register_move(self, coordinate: Coordinate) -> None:
         self._moves.append(coordinate)
 
+    def to_numpy(self) -> np.ndarray:
+        def ohe(state: State) -> np.ndarray:
+            return np.array(
+                [state == State.NONE, state == State.ONE, state == State.TWO]
+            )
+
+        res = []
+        for coord, hex_ in self.hexagons.items():
+            res.append(ohe(hex_.state))
+        return np.array(res, dtype=np.int8).T
+
+    def randomize_grid(self) -> None:
+        import random
+
+        for hex_ in self.hexagons.values():
+            if random.random() < 0.2:
+                hex_.state = random.choice([State.ONE, State.TWO])
+
 
 class HexagonalGridGUIWrapper:
     def __init__(
@@ -237,19 +259,22 @@ class HexagonalGridGUIWrapper:
 
             # add text of the coordinate
             if self._display_coordinate_labels:
-                text = FONT.render(",".join(map(str, coord)), True, WHITE)
-                text_rect = text.get_rect(center=self.positions[coord])
-                self.surface.blit(text, text_rect)
+                for i, c in enumerate(coord):
+                    text = FONT.render(str(c), True, WBG[i])
+                    text_rect = text.get_rect(
+                        center=self.positions[coord]
+                        + HEXAGON_POINT_VECTORS[1 + 2 * i] * self.radius * 0.6
+                    )
+                    self.surface.blit(text, text_rect)
         if self._display_move_indices:
             for i, coord in enumerate(self.grid._moves, 1):
-                text = FONT.render(str(i), True, WHITE)
+                text = FONT.render(str(i), True, PINK)
                 text_rect = text.get_rect(
                     center=self.positions[coord]
-                    + HEXAGON_POINT_VECTORS[1] * self.radius * 0.75
                 )
                 self.surface.blit(text, text_rect)
         for args in self._hexagons_to_highlight:
-            self.highlight_hexagon(*args)
+            self.highlight_hexagon(*args, width=BORDER_WIDTH * 3 // 2)
 
     def hexagon_hovering(self, pos: Vector2) -> Hexagon | None:
         _min_sq_dist = float("inf")
@@ -268,12 +293,14 @@ class HexagonalGridGUIWrapper:
     def toggle_display_move_labels(self) -> None:
         self._display_move_indices = not self._display_move_indices
 
-    def highlight_hexagon(self, hexagon: Hexagon, color: Color) -> None:
+    def highlight_hexagon(
+        self, hexagon: Hexagon, color: Color, width: int | None = None
+    ) -> None:
         pygame.draw.polygon(
             self.surface,
             color,
             self.polygons[hexagon.coordinate],  # type: ignore
-            BORDER_WIDTH,
+            BORDER_WIDTH if width is None else width,
         )
 
     def reset_with_grid(self, grid: HexagonalGrid) -> None:

@@ -8,6 +8,7 @@ GREEN = Color("green")
 BLUE = Color("blue")
 ORANGE = Color("orange")
 MAGENTA = Color("magenta")
+PINK = Color("#cf02be")
 GRAY = Color("gray")
 
 
