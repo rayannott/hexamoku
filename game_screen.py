@@ -70,7 +70,11 @@ class GameScreen:
                         else:
                             print("It's not the bot's turn")
                     elif event.key == pygame.K_c:
-                        self.gui_grid.toggle_display_coordinates()
+                        if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                            pyperclip.copy(json.dumps([list(move) for move in self.game.grid._moves]))
+                            print(f"Copied current {len(self.game.grid._moves)} to clipboard")
+                        else:
+                            self.gui_grid.toggle_display_coordinates()
                     elif event.key == pygame.K_m:
                         self.gui_grid.toggle_display_move_labels()
                     elif event.key == pygame.K_r:
